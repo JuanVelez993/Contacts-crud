@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { Phone } from 'src/phone/entities/phone.entity';
 import { Repository } from 'typeorm';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
@@ -18,10 +19,17 @@ export class ContactsService {
   constructor(
     @InjectRepository(Contact)
     private readonly contactRepository: Repository<Contact>,
+    @InjectRepository(Phone)
+    private readonly phoneRepository: Repository<Phone>,
   ) {}
   async create(createContactDto: CreateContactDto) {
     try {
-      const contact = this.contactRepository.create(createContactDto);
+      const { phones=[], ...contactDetails } = createContactDto;
+      const contact = this.contactRepository.create({
+        ...contactDetails,
+        phones:phones.map(phone =>this.phoneRepository.create(phone))
+        
+      });
       await this.contactRepository.save(contact);
       return contact;
     } catch (error) {

@@ -7,6 +7,6 @@ export class Phone {
   id: string;
   @Column('text')
   phone: string;
-  @ManyToOne(()=>Contact,(contact)=>contact.phone)
+  @ManyToOne(()=>Contact,(contact)=>contact.phones)
   contact: Contact;
 }
