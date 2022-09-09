@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { Contact } from 'src/contacts/entities/contact.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -17,10 +18,17 @@ export class UserService {
   private readonly logger = new Logger('UserService');
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(Contact)
+    private readonly contactRepository: Repository<Contact>,
   ) {}
   async create(createUserDto: CreateUserDto) {
     try {
-      const user = this.userRepository.create(createUserDto);
+      const { contacts=[], ...userDetails } = createUserDto;
+      const user = this.userRepository.create({
+        ...userDetails,
+        contacts:contacts.map(phone =>this.contactRepository.create(phone))
+        
+      });
       await this.userRepository.save(user);
       return user;
     } catch (error) {
