@@ -20,6 +20,7 @@ export class UserService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Contact)
     private readonly contactRepository: Repository<Contact>,
+    private readonly dataSource: DataSource,
   ) {}
   async create(createUserDto: CreateUserDto) {
     try {
@@ -40,7 +41,10 @@ export class UserService {
     const { limit = 10, offset = 0 } = paginationDto;
     return this.userRepository.find({
       take:limit,
-      skip:offset
+      skip:offset,
+      relations:{
+        contacts:true,
+      }
     });
   }
 
@@ -51,11 +55,16 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
+    const { contacts, ...toUpdate} = updateUserDto;
     const user= await this.userRepository.preload({
-      id:id,
-      ...updateUserDto
+      id,
+      ...toUpdate
     });
     if (!user) throw new NotFoundException(`User with id: ${id} not found`);
+    //query runner
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
       await this.userRepository.save(user);
     } catch (error) {

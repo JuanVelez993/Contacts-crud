@@ -42,6 +42,9 @@ export class ContactsService {
     return this.contactRepository.find({
       take: limit,
       skip: offset,
+      relations:{
+        phones:true,
+      }
     });
   }
 
