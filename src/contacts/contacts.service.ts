@@ -27,7 +27,7 @@ export class ContactsService {
       const { phones=[], ...contactDetails } = createContactDto;
       const contact = this.contactRepository.create({
         ...contactDetails,
-        phones:phones.map(phone =>this.phoneRepository.create(phone))
+        phones:phones.map(phone =>this.phoneRepository.create({phone}))
         
       });
       await this.contactRepository.save(contact);

@@ -11,5 +11,5 @@ export class CreateUserDto {
   password: string;
   @IsOptional()
   @IsArray()
-  contacts?:Contact[]
+  contacts?:string[]
 }

@@ -13,7 +13,7 @@ export class Contact {
   @Column('boolean')
   status: boolean;
   @OneToMany(() => Phone, (phone) => phone.contact,{cascade:true,eager:true})
-  phones: Phone[];
+  phones?: Phone[];
   @ManyToOne(() => User,(user)=>user.contacts)
   user: User;
 }

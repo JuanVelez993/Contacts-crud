@@ -9,7 +9,7 @@ export class User {
   user: string;
   @Column('text')
   password: string;
-  @OneToMany(()=>Contact,contact => contact.user,{eager:true})
-  contacts: Contact[];
+  @OneToMany(()=>Contact,contact => contact.user,{cascade:true,eager:true})
+  contacts?: Contact[];
 }
   
