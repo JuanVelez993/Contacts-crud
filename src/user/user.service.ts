@@ -27,7 +27,7 @@ export class UserService {
       const { contacts=[], ...userDetails } = createUserDto;
       const user = this.userRepository.create({
         ...userDetails,
-        contacts:contacts.map(phone =>this.contactRepository.create(phone))
+        contacts:contacts.map(contact =>this.contactRepository.create(contact))
         
       });
       await this.userRepository.save(user);
@@ -66,12 +66,21 @@ export class UserService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      await this.userRepository.save(user);
+      if(contacts){
+         await queryRunner.manager.delete( Contact, { user: { id } });
+         contacts:contacts.map(contact =>this.contactRepository.create(contact))
+      }
+      //await this.userRepository.save(user);
+       await queryRunner.manager.save( user);
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
     } catch (error) {
-      this.handleDBExceptions(error);
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+      this.handleDBExceptions(error); 
     }
     
-    return user;
+    return this.findOnePlain( id );;
   }
 
   async remove(id: string) {
