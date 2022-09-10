@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Contact } from 'src/contacts/entities/contact.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -80,7 +80,7 @@ export class UserService {
       this.handleDBExceptions(error); 
     }
     
-    return this.findOnePlain( id );;
+    return user;
   }
 
   async remove(id: string) {

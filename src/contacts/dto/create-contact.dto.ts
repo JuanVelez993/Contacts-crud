@@ -1,4 +1,4 @@
-import { IsArray, IsOptional,IsString, MinLength } from 'class-validator';
+import { IsArray, IsBoolean, IsOptional,IsString, MinLength } from 'class-validator';
 import { Phone } from 'src/phone/entities/phone.entity';
 
 export class CreateContactDto {
