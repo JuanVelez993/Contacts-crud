@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Phone } from 'src/phone/entities/phone.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
 import { Contact } from './entities/contact.entity';
@@ -21,13 +21,14 @@ export class ContactsService {
     private readonly contactRepository: Repository<Contact>,
     @InjectRepository(Phone)
     private readonly phoneRepository: Repository<Phone>,
+    private readonly dataSource: DataSource,
   ) {}
   async create(createContactDto: CreateContactDto) {
     try {
       const { phones=[], ...contactDetails } = createContactDto;
       const contact = this.contactRepository.create({
         ...contactDetails,
-        phones:phones.map(phone =>this.phoneRepository.create({phone}))
+        phones:phones.map(phone =>this.phoneRepository.create(phone))
         
       });
       await this.contactRepository.save(contact);
@@ -56,19 +57,32 @@ export class ContactsService {
   }
 
   async update(id: string, updateContactDto: UpdateContactDto) {
-    const contact = await this.contactRepository.preload({
-      id: id,
-      ...updateContactDto,
+    const { phones, ...toUpdate} = updateContactDto;
+    const user= await this.contactRepository.preload({
+      id,
+      ...toUpdate
     });
-    if (!contact)
-      throw new NotFoundException(`Contact with id: ${id} not found`);
+    if (!user) throw new NotFoundException(`User with id: ${id} not found`);
+    //query runner
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
-      await this.contactRepository.save(contact);
+      if(phones){
+         await queryRunner.manager.delete( Contact, { user: { id } });
+         phones:phones.map(phone=>this.phoneRepository.create(phone))
+      }
+      //await this.userRepository.save(user);
+       await queryRunner.manager.save( user);
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
     } catch (error) {
-      this.handleDBExceptions(error);
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+      this.handleDBExceptions(error); 
     }
-
-    return contact;
+    
+    return user;
   }
 
   async remove(id: string) {

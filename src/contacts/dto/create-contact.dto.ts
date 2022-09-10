@@ -12,5 +12,5 @@ export class CreateContactDto {
   status:boolean;
   @IsOptional()
   @IsArray()
-  phones?:string[];
+  phones?:Phone[];
 }
