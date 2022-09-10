@@ -37,15 +37,19 @@ export class UserService {
     }
   }
 
-  findAll(paginationDto:PaginationDto) {
+  async findAll(paginationDto:PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
-    return this.userRepository.find({
+    const users=await this.userRepository.find({
       take:limit,
       skip:offset,
       relations:{
         contacts:true,
       }
     });
+    return users.map( ( user ) => ({
+      ...user,
+      contacts: user.contacts.map( contact=> contact)
+    }))
   }
 
   async findOne(id: string) {
@@ -68,7 +72,7 @@ export class UserService {
     try {
       if(contacts){
          await queryRunner.manager.delete( Contact, { user: { id } });
-         contacts:contacts.map(contact =>this.contactRepository.create(contact))
+         contacts:contacts.map(contact =>this.contactRepository.save(contact))
       }
       //await this.userRepository.save(user);
        await queryRunner.manager.save( user);
