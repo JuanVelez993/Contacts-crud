@@ -3,6 +3,8 @@ import { Phone } from 'src/phone/entities/phone.entity';
 
 export class CreateContactDto {
   @IsString()
+  user:{id:string};
+  @IsString()
   @MinLength(3)
   name: string;
   @IsString()
