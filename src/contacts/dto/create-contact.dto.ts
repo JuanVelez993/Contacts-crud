@@ -8,6 +8,8 @@ export class CreateContactDto {
   @IsString()
   @MinLength(3)
   lastname: string;
+  @IsBoolean()
+  status:boolean;
   @IsOptional()
   @IsArray()
   phones?:Phone[];
