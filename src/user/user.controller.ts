@@ -10,9 +10,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto,UpdateUserDto,LoginUserDto   } from './dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+
 
 @Controller('user')
 export class UserController {
@@ -21,6 +21,10 @@ export class UserController {
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
+  }
+  @Post('login')
+  login(@Body() loginUserDto: LoginUserDto) {
+    return this.userService.login(loginUserDto);
   }
 
   @Get()

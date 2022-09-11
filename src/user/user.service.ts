@@ -9,9 +9,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Contact } from 'src/contacts/entities/contact.entity';
 import { DataSource, Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
+import { CreateUserDto,UpdateUserDto,LoginUserDto   } from './dto';
 import { User } from './entities/user.entity';
+
+//TODO: instalar las dependencias de encriptacion
+//add: npm i bcrypt
+//add:npm i -d @types/bcrypt
+
+
 
 @Injectable()
 export class UserService {
@@ -24,14 +30,16 @@ export class UserService {
   ) {}
   async create(createUserDto: CreateUserDto) {
     try {
-      const { contacts=[], ...userDetails } = createUserDto;
+      const { contacts=[],password, ...userDetails } = createUserDto;
       const user = this.userRepository.create({
         ...userDetails,
+        password:bcrypt.hashSync(password,10),
         contacts:contacts.map(contact =>this.contactRepository.create(contact))
         
       });
       await this.userRepository.save(user);
       return user;
+      //TODO: retornar el JWT de acceso
     } catch (error) {
       this.handleDBExceptions(error);
     }
@@ -72,32 +80,7 @@ export class UserService {
     }
 
     return user;
-    /*const { contacts, ...toUpdate} = updateUserDto;
-    const user= await this.userRepository.preload({
-      id,
-      ...toUpdate
-    });
-    if (!user) throw new NotFoundException(`User with id: ${id} not found`);
-    //query runner
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      if(contacts){
-         await queryRunner.manager.delete( Contact, { user: { id } });
-         contacts:contacts.map(contact =>this.contactRepository.save(contact))
-      }
-      //await this.userRepository.save(user);
-       await queryRunner.manager.save( user);
-      await queryRunner.commitTransaction();
-      await queryRunner.release();
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      await queryRunner.release();
-      this.handleDBExceptions(error); 
-    }
-    
-    return user;*/
+  
   }
 
   async remove(id: string) {
@@ -105,7 +88,20 @@ export class UserService {
     await this.userRepository.remove(user);
   }
 
-  private handleDBExceptions(error: any) {
+  async login(loginUserDto: LoginUserDto){
+    const {user,password} = loginUserDto;
+    const userTologin = await this.userRepository.findOneBy({where:{user},select:{user:true,password:true}});
+    if(!userTologin)
+      throw new UnauthorizedException('Credentials are not valid {email}');
+    
+    if(bcrypt.compareSync(password,userTologin.password))
+      throw new UnauthorizedException('Credentials are not valid {password}');
+      return userTologin;
+      //TODO:retornar el JWT
+
+  }
+
+  private handleDBExceptions(error: any):never {
     if (error.code === '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);
     throw new InternalServerErrorException(

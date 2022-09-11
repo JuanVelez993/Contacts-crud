@@ -2,7 +2,7 @@ import { IsArray, IsOptional, IsString, MinLength } from 'class-validator';
 import { Contact } from 'src/contacts/entities/contact.entity';
 
 
-export class CreateUserDto {
+export class LoginUserDto {
   @IsString()
   @MinLength(3)
   user: string;

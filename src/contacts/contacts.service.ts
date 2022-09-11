@@ -73,32 +73,7 @@ export class ContactsService {
   }
 
   return contact;
-    /*const { phones, ...toUpdate} = updateContactDto;
-    const user= await this.contactRepository.preload({
-      id,
-      ...toUpdate
-    });
-    if (!user) throw new NotFoundException(`User with id: ${id} not found`);
-    //query runner
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      if(phones){
-         await queryRunner.manager.delete( Contact, { user: { id } });
-         phones:phones.map(phone=>this.phoneRepository.save(phone))
-      }
-      //await this.userRepository.save(user);
-       await queryRunner.manager.save( user);
-      await queryRunner.commitTransaction();
-      await queryRunner.release();
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      await queryRunner.release();
-      this.handleDBExceptions(error); 
-    }
     
-    return user;*/
   }
 
   async remove(id: string) {
@@ -106,7 +81,7 @@ export class ContactsService {
     await this.contactRepository.remove(contact);
   }
 
-  private handleDBExceptions(error: any) {
+  private handleDBExceptions(error: any) :never{
     if (error.code === '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);
     throw new InternalServerErrorException(

@@ -5,6 +5,7 @@ import { ContactsModule } from './contacts/contacts.module';
 import { UserModule } from './user/user.module';
 import { PhoneModule } from './phone/phone.module';
 import { CommonModule } from './common/common.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { CommonModule } from './common/common.module';
     UserModule,
     PhoneModule,
     CommonModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
