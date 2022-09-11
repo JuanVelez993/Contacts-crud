@@ -4,19 +4,15 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Contact } from 'src/contacts/entities/contact.entity';
 import { DataSource, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto,UpdateUserDto,LoginUserDto   } from './dto';
+import { CreateUserDto, UpdateUserDto, LoginUserDto } from './dto';
 import { User } from './entities/user.entity';
-
-//TODO: instalar las dependencias de encriptacion
-//add: npm i bcrypt
-//add:npm i -d @types/bcrypt
-
 
 
 @Injectable()
@@ -30,12 +26,13 @@ export class UserService {
   ) {}
   async create(createUserDto: CreateUserDto) {
     try {
-      const { contacts=[],password, ...userDetails } = createUserDto;
+      const { contacts = [], password, ...userDetails } = createUserDto;
       const user = this.userRepository.create({
         ...userDetails,
-        password:bcrypt.hashSync(password,10),
-        contacts:contacts.map(contact =>this.contactRepository.create(contact))
-        
+        password: bcrypt.hashSync(password, 10),
+        contacts: contacts.map((contact) =>
+          this.contactRepository.create(contact),
+        ),
       });
       await this.userRepository.save(user);
       return user;
@@ -45,19 +42,19 @@ export class UserService {
     }
   }
 
-  async findAll(paginationDto:PaginationDto) {
+  async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
-    const users=await this.userRepository.find({
-      take:limit,
-      skip:offset,
-      relations:{
-        contacts:true,
-      }
+    const users = await this.userRepository.find({
+      take: limit,
+      skip: offset,
+      relations: {
+        contacts: true,
+      },
     });
-    return users.map( ( user ) => ({
+    return users.map((user) => ({
       ...user,
-      contacts: user.contacts.map( contact=> contact)
-    }))
+      contacts: user.contacts.map((contact) => contact),
+    }));
   }
 
   async findOne(id: string) {
@@ -71,8 +68,7 @@ export class UserService {
       id: id,
       ...updateUserDto,
     });
-    if (!user)
-      throw new NotFoundException(`User with id: ${id} not found`);
+    if (!user) throw new NotFoundException(`User with id: ${id} not found`);
     try {
       await this.userRepository.save(user);
     } catch (error) {
@@ -80,7 +76,6 @@ export class UserService {
     }
 
     return user;
-  
   }
 
   async remove(id: string) {
@@ -88,20 +83,22 @@ export class UserService {
     await this.userRepository.remove(user);
   }
 
-  async login(loginUserDto: LoginUserDto){
-    const {user,password} = loginUserDto;
-    const userTologin = await this.userRepository.findOneBy({where:{user},select:{user:true,password:true}});
-    if(!userTologin)
+  async login(loginUserDto: LoginUserDto) {
+    const { user, password } = loginUserDto;
+    const userTologin = await this.userRepository.findOne({
+      where: { user },
+      select: { user: true, password: true, id: true } //! OJO!
+    });
+    if (!userTologin)
       throw new UnauthorizedException('Credentials are not valid {email}');
-    
-    if(bcrypt.compareSync(password,userTologin.password))
-      throw new UnauthorizedException('Credentials are not valid {password}');
-      return userTologin;
-      //TODO:retornar el JWT
 
+    if (bcrypt.compareSync(password, userTologin.password))
+      throw new UnauthorizedException('Credentials are not valid {password}');
+    return userTologin;
+    //TODO:retornar el JWT
   }
 
-  private handleDBExceptions(error: any):never {
+  private handleDBExceptions(error: any): never {
     if (error.code === '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);
     throw new InternalServerErrorException(
