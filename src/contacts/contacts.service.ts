@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Phone } from 'src/phone/entities/phone.entity';
+import { User } from 'src/user/entities/user.entity';
 import { DataSource, Repository } from 'typeorm';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
@@ -17,6 +18,7 @@ import { Contact } from './entities/contact.entity';
 export class ContactsService {
   private readonly logger = new Logger('ContactService');
   constructor(
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Contact)
     private readonly contactRepository: Repository<Contact>,
     @InjectRepository(Phone)
@@ -61,7 +63,22 @@ export class ContactsService {
   }
 
   async update(id: string, updateContactDto: UpdateContactDto) {
-    const { phones, ...toUpdate} = updateContactDto;
+    const contactToUpdate = await this.contactRepository.findOneBy({ id})
+
+        const relatedUser = await this.userRepository.findOneBy({ id: updateContactDto.user.id })
+
+        if (!contactToUpdate) {
+            throw new Error(`User with id:  ${id}  was not found`)
+        }
+
+        if (!relatedUser) {
+            throw new Error(`User with id: ${updateContactDto.user.id } was not found`)
+        }
+
+        this.contactRepository.merge(contactToUpdate, updateContactDto)
+
+        return await this.contactRepository.save(contactToUpdate)
+    /*const { phones, ...toUpdate} = updateContactDto;
     const user= await this.contactRepository.preload({
       id,
       ...toUpdate
@@ -86,7 +103,7 @@ export class ContactsService {
       this.handleDBExceptions(error); 
     }
     
-    return user;
+    return user;*/
   }
 
   async remove(id: string) {

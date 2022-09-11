@@ -14,7 +14,7 @@ export class Contact {
   status: boolean;
   @OneToMany(() => Phone, (phone) => phone.contact,{cascade:true,eager:true})
   phones?: Phone[];
-  @ManyToOne(() => User,(user)=>user.contacts)
+  @ManyToOne(() => User,(user)=>user.contacts,{onDelete:"CASCADE"})
   user: User;
 }
 
