@@ -63,21 +63,16 @@ export class ContactsService {
   }
 
   async update(id: string, updateContactDto: UpdateContactDto) {
-    const contactToUpdate = await this.contactRepository.findOneBy({ id})
+    const contact = await this.contactRepository.preload({ id,...updateContactDto});
+    if (!contact)
+    throw new NotFoundException(`Contact with id: ${id} not found`);
+  try {
+    await this.contactRepository.save(contact);
+  } catch (error) {
+    this.handleDBExceptions(error);
+  }
 
-        const relatedUser = await this.userRepository.findOneBy({ id: updateContactDto.user.id })
-
-        if (!contactToUpdate) {
-            throw new Error(`User with id:  ${id}  was not found`)
-        }
-
-        if (!relatedUser) {
-            throw new Error(`User with id: ${updateContactDto.user.id } was not found`)
-        }
-
-        this.contactRepository.merge(contactToUpdate, updateContactDto)
-
-        return await this.contactRepository.save(contactToUpdate)
+  return contact;
     /*const { phones, ...toUpdate} = updateContactDto;
     const user= await this.contactRepository.preload({
       id,
