@@ -10,33 +10,32 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   controllers: [UserController],
-  providers: [UserService,JwtStrategy ],
-  imports: [TypeOrmModule.forFeature([User,Contact])],
-  PassportModule.register({ defaultStrategy: 'jwt' }),
-  //TODO: agregar JWT_SECRET alas variables de entorno
-
-  JwtModule.registerAsync({
-      imports: [ ],
-      inject: [  ],
-      useFactory: (  ) => {
+  providers: [UserService, JwtStrategy],
+  imports: [
+    TypeOrmModule.forFeature([User, Contact]),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [],
+      inject: [],
+      useFactory: () => {
         // console.log('JWT Secret', configService.get('JWT_SECRET') )
         // console.log('JWT SECRET', process.env.JWT_SECRET)
         return {
           secret: process.env.JWT_SECRET,
           signOptions: {
-            expiresIn:'2h'
-          }
-        }
-      }
-    })
+            expiresIn: '2h',
+          },
+        };
+      },
+    }),
 
-  //asi se maneja de manera sincrona
+    //asi se maneja de manera sincrona
     // JwtModule.register({
-      // secret: process.env.JWT_SECRET,
-      // signOptions: {
-      //   expiresIn:'2h'
-      // }
-    // })
-
+    // secret: process.env.JWT_SECRET,
+    // signOptions: {
+    //   expiresIn:'2h'
+    // }
+    // })],
+  ],
 })
 export class UserModule {}
