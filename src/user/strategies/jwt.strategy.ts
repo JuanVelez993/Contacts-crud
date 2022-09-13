@@ -7,31 +7,24 @@ import { User } from '../entities/user.entity';
 import { JwtPayload } from '../interfaces/jwt-palyload.interface';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy( Strategy ) {
-    constructor(
-        @InjectRepository( User )
-        private readonly userRepository: Repository<User>,
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {
+    super({
+      secretOrKey: process.env.JWT_SECRET,
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    });
+  }
 
-        
-    ) {
+  async validate(payload: JwtPayload): Promise<User> {
+    const { id } = payload;
 
-        super({
-            secretOrKey: process.env.JWT_SECRET,
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-        });
-    }
+    const userToValidate = await this.userRepository.findOneBy({ id });
 
+    if (!userToValidate) throw new UnauthorizedException('Token not valid');
 
-
-     async validate( payload: JwtPayload ): Promise<User> {
-        
-        const { id} = payload;
-
-        const userToValidate = await this.userRepository.findOneBy({id});
-
-        if ( !userToValidate  ) 
-            throw new UnauthorizedException('Token not valid')
-            
-        return userToValidate;
-    }
+    return userToValidate;
+  }
 }
