@@ -39,7 +39,7 @@ export class UserService {
       await this.userRepository.save(user);
       return {
         ...user,
-        token: this.getJwtToken({ user:userDetails})
+        token: this.getJwtToken({ id: user.id})
       };
       
     } catch (error) {
@@ -101,7 +101,7 @@ export class UserService {
       throw new UnauthorizedException('Credentials are not valid {password}');
     return {
         ...userTologin,
-        token: this.getJwtToken({ user: user})
+        token: this.getJwtToken({ id:userTologin.id})
       };
   }
 
