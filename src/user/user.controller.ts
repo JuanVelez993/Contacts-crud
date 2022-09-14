@@ -8,7 +8,7 @@ import {
   Delete,
   ParseUUIDPipe,
   Query,
-  UseGuards,Req, UsePipes
+  UseGuards
 } from '@nestjs/common';
 import {AuthGuard} from '@nestjs/passport';
 import { UserService } from './user.service';
@@ -52,13 +52,5 @@ export class UserController {
     return this.userService.remove(id);
   }
 
-  @Get('private')
-  @UseGuards(AuthGuard())
-  testingPrivateRoute(
-  )
-  {
-    return {
-      ok:true,
-      message:'Hola Mundo Private'};
-  }
+
 }

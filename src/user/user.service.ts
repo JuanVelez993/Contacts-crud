@@ -9,7 +9,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Contact } from 'src/contacts/entities/contact.entity';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto, UpdateUserDto, LoginUserDto } from './dto';
 import { User } from './entities/user.entity';
